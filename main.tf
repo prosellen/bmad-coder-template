@@ -108,35 +108,7 @@ resource "coder_agent" "main" {
   arch           = "amd64"
   startup_script = <<-EOT
     set -e
-
-    # Install the latest code-server.
-    # Append "--version x.x.x" to install a specific version of code-server.
-    # We need v4.107.0, because it corresponds to v0.35.2 of the GitHub CoPilot Chat plugin below
-    curl -fsSL https://code-server.dev/install.sh | sh -s -- --method=standalone --version 4.107.0
-
-    # Add code-server to path
-    export PATH="$HOME/.local/bin:$PATH"
-
-    mkdir -p $HOME/.local/tmp/extensions
-    curl -L "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/GitHub/vsextensions/copilot/latest/vspackage" -o $HOME/.local/tmp/extensions/github-copilot.vsix
-    gunzip -c $HOME/.local/tmp/extensions/github-copilot.vsix > $HOME/.local/tmp/extensions/github-copilot-decompressed.vsix
-
-    # The GitHub CoPilot Chat VSIX is not available on the public / open source Marketplace
-    # MS does not officially publish a VSIX for CoPilot Chat - but if you know the exact version and how the URL looks, you are able to download it
-    # IMPORTANT: GitHub CoPilot extensions are only released for specific versions of VS Code - in this case, we needed to download "0.35.2" because "latest" does not work with the
-    # VS Code used "under the hood" from code-server
-    curl -L "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/GitHub/vsextensions/copilot-chat/0.35.2/vspackage" -o $HOME/.local/tmp/extensions/github-copilot-chat.vsix
-    gunzip -c $HOME/.local/tmp/extensions/github-copilot-chat.vsix > $HOME/.local/tmp/extensions/github-copilot-chat-decompressed.vsix
-
-    $HOME/.local/bin/code-server --install-extension $HOME/.local/tmp/extensions/github-copilot-decompressed.vsix
-    $HOME/.local/bin/code-server --install-extension $HOME/.local/tmp/extensions/github-copilot-chat-decompressed.vsix  
-
-    # Start code-server in the background.
-    $HOME/.local/bin/code-server \
-      --auth none \
-      --port 13337 >/tmp/code-server.log 2>&1 &
-
-    # rm -rf $HOME/.local/tmp/extensions/
+    # Add any custom startup commands here
   EOT
 
   # The following metadata blocks are optional. They are used to display
@@ -196,21 +168,30 @@ resource "coder_agent" "main" {
   }
 }
 
-# code-server
-resource "coder_app" "code-server" {
-  agent_id     = coder_agent.main.id
-  slug         = "code-server"
-  display_name = "code-server"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:13337?folder=/home/coder"
-  subdomain    = false
-  share        = "authenticated"
+# VS Code Web module
+module "vscode-web" {
+  count   = data.coder_workspace.me.start_count
+  source  = "registry.coder.com/modules/coder/vscode-web/coder"
+  version = "1.4.3"
 
-  healthcheck {
-    url       = "http://localhost:13337/healthz"
-    interval  = 3
-    threshold = 10
-  }
+  agent_id                = coder_agent.main.id
+  accept_license          = true
+  auto_install_extensions = true
+
+  # Open home by default (or point to a project folder you create)
+  folder = "/home/coder"
+
+  # Extensions to install automatically
+  extensions = [
+    "github.copilot",
+    "github.copilot-chat"
+  ]
+
+  # IMPORTANT: put extensions on the PVC so they persist
+  extensions_dir = "/home/coder/.vscode-server/extensions"
+
+  # Recommended if your admin has wildcard subdomains enabled
+  subdomain = true
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "home" {

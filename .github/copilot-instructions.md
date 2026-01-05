@@ -30,9 +30,13 @@ This repository contains Terraform-based templates for **Coder Community Edition
 
 ### GitHub Actions
 - **Deployment Workflow**: Automates template deployment to Coder
-- **Coder CLI**: https://coder.com/docs/cli
+  - Triggered on pushes to `main` branch
+- **Coder CLI**: https://coder.com/docs/reference/cli
+  - Notes on managing templates using the CLI: https://coder.com/docs/admin/templates/managing-templates/change-management#coder-cli
+- **Setup Coder Action for GitHub**: https://github.com/coder/setup-action
 - Templates are pushed using `coder template push` command
 - Authentication via `CODER_URL` and `CODER_SESSION_TOKEN` secrets
+- Coder provides the coderd Terraform provider for managing templates: https://coder.com/docs/admin/templates/managing-templates/change-management
 
 ## Template Structure Guidelines
 

@@ -108,11 +108,12 @@ provider "kubernetes" {
 
 data "coder_workspace" "me" {}
 data "coder_workspace_owner" "me" {}
+data "coder_provisioner" "me" {}
 
 resource "coder_agent" "main" {
   # -- REQUIERED --
-  os             = "linux"
-  arch           = "amd64"
+  os             = data.coder_provisioner.me.os
+  arch           = data.coder_provisioner.me.arch
 
   # --- OPTIONAL --
   # Initialization script that runs when the agent starts.
@@ -122,6 +123,7 @@ resource "coder_agent" "main" {
     # Ensure mise activates in terminals
     touch "$HOME/.bashrc" "$HOME/.bash_profile"
 
+    # Make sure mise is activated in bash shells
     grep -q 'mise activate bash' "$HOME/.bashrc" \
       || echo 'eval "$(mise activate bash)"' >> "$HOME/.bashrc"
     eval "$(mise activate bash)"
@@ -130,14 +132,18 @@ resource "coder_agent" "main" {
       || echo 'eval "$(mise activate bash --shims)"' >> "$HOME/.bash_profile"
     eval "$(mise activate bash --shims)"
 
-    # # Install BMAD CLI
-    # mise install "nodejs@24" \
-    #   && mise use "nodejs@24" --global
-
+    # Create project directory and copy BMAD files
     mkdir -p /home/coder/project
     cp -R /opt/bmad/bmad-files/. /home/coder/project/
 
-    # Add any custom startup commands here
+    # Write the settings
+    cat <<EOF > "$HOME/.vscode-server/data/Machine/settings.json"
+    {
+        "keyboard.dispatch": "keyCode",
+        "keyboard.layout": "de",
+        # "workbench.colorTheme": "Default Dark Modern"
+    }
+    EOF
   EOT
 
   # Default is "non-blocking", although "blocking" is recommended.

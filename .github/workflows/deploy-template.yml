@@ -49,14 +49,14 @@ jobs:
           access_url: ${{ env.CODER_URL }}
           coder_session_token: ${{ secrets.CODER_TOKEN }}
 
-      - name: Create template variables file
-        run: |
-          cat > template.tfvars <<EOF
-          use_kubeconfig   = ${{ env.USE_KUBECONFIG }}
-          namespace        = "${{ env.NAMESPACE }}"
-          bmad_cli_version = "${{ env.BMAD_CLI_VERSION }}"
-          EOF
-          echo "📝 Created template.tfvars with deployment variables"
+      # - name: Create template variables file
+      #   run: |
+      #     cat > template.tfvars <<EOF
+      #     use_kubeconfig   = ${{ env.USE_KUBECONFIG }}
+      #     namespace        = "${{ env.NAMESPACE }}"
+      #     bmad_cli_version = "${{ env.BMAD_CLI_VERSION }}"
+      #     EOF
+      #     echo "📝 Created template.tfvars with deployment variables"
 
       - name: Push template to Coder
         env:
@@ -66,7 +66,9 @@ jobs:
           coder template push ${{ env.TEMPLATE_NAME }} \
             --directory . \
             --name "${{ steps.version.outputs.VERSION }}" \
-            --variables-file template.tfvars \
+            --variable use_kubeconfig=${{ env.USE_KUBECONFIG }} \
+            --variable namespace=${{ env.NAMESPACE }} \
+            --variable bmad_cli_version=${{ env.BMAD_CLI_VERSION }} \
             --message "Automated deployment via GitHub Actions - v${{ steps.version.outputs.VERSION }}" \
             --yes
 

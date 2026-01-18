@@ -108,11 +108,12 @@ provider "kubernetes" {
 
 data "coder_workspace" "me" {}
 data "coder_workspace_owner" "me" {}
+data "coder_provisioner" "me" {}
 
 resource "coder_agent" "main" {
   # -- REQUIERED --
-  os             = "linux"
-  arch           = "amd64"
+  os             = data.coder_provisioner.me.os
+  arch           = data.coder_provisioner.me.arch
 
   # --- OPTIONAL --
   # Initialization script that runs when the agent starts.

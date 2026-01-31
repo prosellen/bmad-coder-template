@@ -147,10 +147,8 @@ resource "coder_agent" "main" {
     mise use --global nodejs
     mise use --global python
 
-    # Seed VS Code default settings (versioned in the template) and merge them
-    # into the VS Code Server machine settings file.
-    # Existing user settings always win.
-    mkdir -p "$HOME/.config/bmad-coder"
+    # Seed VS Code default settings (versioned in the template)
+    mkdir -p "$HOME/.vscode-server/data/Machine"
     cat <<'JSON' > "$HOME/.vscode-server/data/Machine/settings.json"
 ${local.vscode_default_settings_json}
 JSON
@@ -162,6 +160,9 @@ JSON
 ${local.vscode_default_locale_json}
 JSON
     fi
+
+    # Install markdown-tree-parser globally
+    npm install -g @kayvan/markdown-tree-parser
   EOT
 
   # Default is "non-blocking", although "blocking" is recommended.
@@ -276,9 +277,13 @@ module "vscode-web" {
   # IMPORTANT: put extensions on the PVC so they persist
   extensions_dir = "/home/coder/.vscode-web/extensions"
 
+  # Who can access this workspace's VS Code Web instance - options are:
+  # "public" (anyone with the link), "authenticated" (any logged-in user), or
+  # "owner" (only the workspace owner).
+  share = "authenticated"
 
   # Recommended if your admin has wildcard subdomains enabled
-  subdomain = false
+  subdomain = true
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "home" {

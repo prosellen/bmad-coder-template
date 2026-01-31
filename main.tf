@@ -160,6 +160,9 @@ JSON
 ${local.vscode_default_locale_json}
 JSON
     fi
+
+    # Install markdown-tree-parser globally
+    npm install -g @kayvan/markdown-tree-parser
   EOT
 
   # Default is "non-blocking", although "blocking" is recommended.
@@ -280,7 +283,7 @@ module "vscode-web" {
   share = "authenticated"
 
   # Recommended if your admin has wildcard subdomains enabled
-  subdomain = false
+  subdomain = true
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "home" {

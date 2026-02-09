@@ -107,17 +107,21 @@ data "coder_parameter" "bmad_version" {
   display_name = "BMAD Version"
   description  = "The BMAD version to use"
   default      = "6"
-  type         = "number"
+  type         = "string"
   icon         = "/emojis/1f4e6.png"
   form_type    = "radio"
   mutable      = false
   option {
-    name  = "v4"
+    name  = "v4 (New)"
     value = "4"
   }
   option {
-    name  = "v6"
+    name  = "v6 (New)"
     value = "6"
+  }
+  option {
+    name  = "Legacy"
+    value = "legacy"
   }
 }
 

@@ -1,10 +1,5 @@
----
-display_name: bmad-coder-template
-description: Provision Kubernetes Deployments as Coder workspaces
-maintainer_github: coder
-verified: true
-tags: [kubernetes, container]
----
+> 🚨 DEPRECATED: This repo is now read-only and has been deprecated
+> All project related files have been moved to a monorepo at https://github.com/bmad-method-test-project/bmad-method
 
 # Remote Development on Kubernetes Pods
 
